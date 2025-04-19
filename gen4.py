@@ -1,8 +1,8 @@
 import sys
+import os
 from pathlib import Path
 
-
-scale = 1
+scale = float(os.environ.get('SCALE', 1))
 media_width = 210
 media_height = 297
 
