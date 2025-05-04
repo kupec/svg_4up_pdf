@@ -1,10 +1,15 @@
+import math
 import sys
 import os
 from pathlib import Path
 
 scale = float(os.environ.get('SCALE', 1))
-media_width = 210
-media_height = 297
+rows = int(os.environ.get('ROWS', 2))
+columns = int(os.environ.get('COLUMNS', 2))
+media_width = float(os.environ.get('MEDIA_WIDTH', 210))
+media_height = float(os.environ.get('MEDIA_HEIGHT', 297))
+opacity = float(os.environ.get('OPACITY', 0.25))
+rotate = bool(os.environ.get('ROTATE', False))
 
 def px(size_in_mm):
     return size_in_mm / 25.4 * 96
@@ -14,34 +19,31 @@ H = px(media_height)
 cx = W/2
 cy = H/2
 
-opacity = 0.25
-
 files = sys.argv[1:]
-if len(files) != 4:
-    print('Specify 4 files')
-    sys.exit(1)
 
 print(f'<svg width="{media_width}mm" height="{media_height}mm">')
 
 def read_svg(file):
    return ''.join(Path(file).read_text().splitlines()[1:])
 
-svg1 = read_svg(files[0])
-print(f'<g opacity="{opacity}" transform="scale({scale})">{svg1}</g>')
-
-svg2 = read_svg(files[1])
-print(f'<g opacity="{opacity}" transform="translate({cx} 0) scale({scale})">{svg2}</g>')
-
-svg3 = read_svg(files[2])
-print(f'<g opacity="{opacity}" transform="translate(0 {cy}) scale({scale})">{svg3}</g>')
-
-svg4 = read_svg(files[3])
-print(f'<g opacity="{opacity}" transform="translate({cx} {cy}) scale({scale})">{svg4}</g>')
+for r in range(rows):
+    for c in range(columns):
+        svg = read_svg(files.pop(0))
+        dx = c * W / columns
+        dy = r * H / rows
+        radius = min(W / columns, H / rows) / 2
+        rot = '90' if rotate else 0
+        print(f'<g opacity="{opacity}" transform="translate({dx} {dy}) rotate({rot} {radius} {radius}) scale({scale}) ">{svg}</g>')
 
 stroke = 'rgb(190, 190, 190)'
 stroke_width = "0.25pt"
 dasharray = '1 2'
-print(f'<line x1="{cx}" y1="{0}" x2="{cx}" y2="{H}" stroke="{stroke}" stroke-width="{stroke_width}" stroke-dasharray="{dasharray}"/>')
-print(f'<line x1="{0}" y1="{cy}" x2="{W}" y2="{cy}" stroke="{stroke}" stroke-width="{stroke_width}" stroke-dasharray="{dasharray}"/>')
+
+for r in range(1, rows):
+    dy = r * H / rows
+    print(f'<line x1="{0}" y1="{dy}" x2="{W}" y2="{dy}" stroke="{stroke}" stroke-width="{stroke_width}" stroke-dasharray="{dasharray}"/>')
+for c in range(1, columns):
+    dx = c * W / columns
+    print(f'<line x1="{dx}" y1="{0}" x2="{dx}" y2="{H}" stroke="{stroke}" stroke-width="{stroke_width}" stroke-dasharray="{dasharray}"/>')
 
 print(f'</svg>')
