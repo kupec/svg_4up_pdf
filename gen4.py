@@ -28,11 +28,11 @@ def read_svg(file):
 
 for r in range(rows):
     for c in range(columns):
-        svg = read_svg(files.pop(0))
+        svg = read_svg(files.pop(0)) if files else ''
         dx = c * W / columns
         dy = r * H / rows
         radius = min(W / columns, H / rows) / 2
-        rot = '90' if rotate else 0
+        rot = '-90' if rotate else 0
         print(f'<g opacity="{opacity}" transform="translate({dx} {dy}) rotate({rot} {radius} {radius}) scale({scale}) ">{svg}</g>')
 
 stroke = 'rgb(190, 190, 190)'
